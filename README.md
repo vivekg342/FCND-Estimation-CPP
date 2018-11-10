@@ -115,4 +115,11 @@ Based on [Estimation for Quadrotors](https://v1.overleaf.com/read/vymfngphcccj#/
   zFromX(5) = ekfState(5);
 
 ```
-![mag.png](./output/gps_update.png)
+![gps_update.png](./output/gps_update.png)
+
+
+### Step 6: Adding Your Controller
+
+After replacing with real controller gps position still seems to be pretty good.
+
+![gps_update_real.png](./output/gps_update_real.png)
