@@ -106,3 +106,35 @@ Implementation of non-linear complimentary filter
 
 ```
 ![attitude_estimation.png](./output/attitude_estimation.png)
+
+### Step 3
+
+1) *Implement integration in predict step*
+2) *Implement rbg_prime matrix *
+
+![rbg.png](./output/rbg_prime.png)
+
+```
+  RbgPrime(0,0) = -cos(theta) * sin(psi);
+  RbgPrime(0,1) = -sin(phi) * sin(theta) * sin(psi) - cos(phi) * cos(psi);
+  RbgPrime(0,2) = -cos(phi) * sin(theta) * sin(psi) + sin(phi) * cos(psi);
+
+  RbgPrime(1,0) = cos(theta) * cos(psi);
+  RbgPrime(1,1) = sin(phi) * sin(theta) * cos(psi) - cos(phi) * sin(psi);
+  RbgPrime(1,2) = cos(phi) * sin(theta) * cos(psi) + sin(phi) * sin(psi);
+```
+3) *Calculate jacobian*
+
+![jacobian.png](./output/jacobian.png)
+```
+  MatrixXf gPrime(QUAD_EKF_NUM_STATES, QUAD_EKF_NUM_STATES);
+  gPrime.setIdentity();
+  gPrime(0,3) = dt;
+  gPrime(1,4) = dt;
+  gPrime(2,5) = dt;
+  gPrime(3,6) = dt * (RbgPrime(0) * accel).sum();
+  gPrime(4,6) = dt * (RbgPrime(1) * accel).sum();
+  gPrime(5,6) = dt * (RbgPrime(2) * accel).sum();
+  ekfCov = gPrime*(ekfCov*gPrime.transpose()) + Q;
+
+```

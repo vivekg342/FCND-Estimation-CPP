@@ -142,6 +142,8 @@ VectorXf QuadEstimatorEKF::PredictState(VectorXf curState, float dt, V3F accel, 
 {
   assert(curState.size() == QUAD_EKF_NUM_STATES);
   VectorXf predictedState = curState;
+  
+  
   // Predict the current state forward by time dt using current accelerations and body rates as input
   // INPUTS: 
   //   curState: starting state
@@ -162,7 +164,19 @@ VectorXf QuadEstimatorEKF::PredictState(VectorXf curState, float dt, V3F accel, 
   Quaternion<float> attitude = Quaternion<float>::FromEuler123_RPY(rollEst, pitchEst, curState(6));
 
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
-
+  
+  //state: x, y, z, x_bar, y_bar, z_bar, yaw
+  
+  // Integrate position
+  predictedState(0) += curState(3)*dt;
+  predictedState(1) += curState(4)*dt;
+  predictedState(2) += curState(5)*dt;
+  
+  // Integrate velocity, but for this we need to convert accel to body frame
+  V3F accel_bf = attitude.Rotate_BtoI(accel);
+  predictedState(3) += accel_bf.x * dt;
+  predictedState(4) += accel_bf.y * dt;
+  predictedState(5) += (-CONST_GRAVITY + accel_bf.z) * dt;
 
   /////////////////////////////// END STUDENT CODE ////////////////////////////
 
@@ -190,7 +204,18 @@ MatrixXf QuadEstimatorEKF::GetRbgPrime(float roll, float pitch, float yaw)
 
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
 
-
+  // convenience sake
+  float phi = roll;
+  float theta = pitch;
+  float psi = yaw;
+  
+  RbgPrime(0,0) = -cos(theta) * sin(psi);
+  RbgPrime(0,1) = -sin(phi) * sin(theta) * sin(psi) - cos(phi) * cos(psi);
+  RbgPrime(0,2) = -cos(phi) * sin(theta) * sin(psi) + sin(phi) * cos(psi);
+  
+  RbgPrime(1,0) = cos(theta) * cos(psi);
+  RbgPrime(1,1) = sin(phi) * sin(theta) * cos(psi) - cos(phi) * sin(psi);
+  RbgPrime(1,2) = cos(phi) * sin(theta) * cos(psi) + sin(phi) * sin(psi);
   /////////////////////////////// END STUDENT CODE ////////////////////////////
 
   return RbgPrime;
@@ -235,7 +260,13 @@ void QuadEstimatorEKF::Predict(float dt, V3F accel, V3F gyro)
   gPrime.setIdentity();
 
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
-
+  gPrime(0,3) = dt;
+  gPrime(1,4) = dt;
+  gPrime(2,5) = dt;
+  gPrime(3,6) = dt * (RbgPrime(0) * accel).sum();
+  gPrime(4,6) = dt * (RbgPrime(1) * accel).sum();
+  gPrime(5,6) = dt * (RbgPrime(2) * accel).sum();
+  ekfCov = gPrime*(ekfCov*gPrime.transpose()) + Q;
 
   /////////////////////////////// END STUDENT CODE ////////////////////////////
 
