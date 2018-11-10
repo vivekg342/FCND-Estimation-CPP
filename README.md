@@ -138,3 +138,28 @@ Implementation of non-linear complimentary filter
   ekfCov = gPrime*(ekfCov*gPrime.transpose()) + Q;
 
 ```
+
+
+Step 4: Magnetometer Update
+
+1) Tune Yaw
+```
+QYawStd = .12
+```
+
+2) Implement MagUpdate
+```
+hPrime(6) = 1.f;
+  
+  // measure
+  zFromX = hPrime * ekfState;
+  
+  // normalise
+  if (magYaw - zFromX[0] > F_PI) {
+    zFromX[0] += 2 * F_PI;
+  }
+  if (magYaw - zFromX[0] < -F_PI) {
+    zFromX[0] -= 2 * F_PI;
+  }
+```
+![mag.png](./output/mag.png)
