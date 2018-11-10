@@ -89,7 +89,20 @@ print("Accel", np.std(accel_data))
 > GPS 0.7210370603219032
 > Accel 0.5095841721693598
 ```
+![sensor_noise.png](./output/sensor_noise.png)
 
 ### Step 2: Attitude Estimation
+Based on [Estimation for Quadrotors](https://v1.overleaf.com/read/vymfngphcccj#/54894644/)
+Implementation of non-linear complimentary filter
+```
+  Quaternion<float> qt = Quaternion<float>::FromEulerYPR(ekfState(6), pitchEst, rollEst);
+  Quaternion<float> dq;
+  dq.IntegrateBodyRate(gyro, dtIMU);
+  Quaternion<float> q_bar = dq * qt;
+  float predictedPitch = q_bar.Pitch();
+  float predictedRoll = q_bar.Roll();
+  ekfState(6) = q_bar.Yaw();	// yaw
 
-*6004410576*
+
+```
+![attitude_estimation.png](./output/attitude_estimation.png)

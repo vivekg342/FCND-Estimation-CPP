@@ -88,14 +88,15 @@ void QuadEstimatorEKF::UpdateFromIMU(V3F accel, V3F gyro)
   //    2) use the Quaternion<float> class, which has a handy FromEuler123_RPY function for creating a quaternion from Euler Roll/PitchYaw
   //       (Quaternion<float> also has a IntegrateBodyRate function, though this uses quaternions, not Euler angles)
 
-  ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
-  // SMALL ANGLE GYRO INTEGRATION:
-  // (replace the code below)
-  // make sure you comment it out when you add your own code -- otherwise e.g. you might integrate yaw twice
+  ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////Z
 
-  float predictedPitch = pitchEst + dtIMU * gyro.y;
-  float predictedRoll = rollEst + dtIMU * gyro.x;
-  ekfState(6) = ekfState(6) + dtIMU * gyro.z;	// yaw
+  Quaternion<float> qt = Quaternion<float>::FromEulerYPR(ekfState(6), pitchEst, rollEst);
+  Quaternion<float> dq;
+  dq.IntegrateBodyRate(gyro, dtIMU);
+  Quaternion<float> q_bar = dq * qt;
+  float predictedPitch = q_bar.Pitch();
+  float predictedRoll = q_bar.Roll();
+  ekfState(6) = q_bar.Yaw();	// yaw
 
   // normalize yaw to -pi .. pi
   if (ekfState(6) > F_PI) ekfState(6) -= 2.f*F_PI;
