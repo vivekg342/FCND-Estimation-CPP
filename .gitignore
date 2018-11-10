@@ -26,3 +26,4 @@ bld/
 # manual cmake build ignores
 build/
 .ipynb_checkpoints
+xcuserdata
